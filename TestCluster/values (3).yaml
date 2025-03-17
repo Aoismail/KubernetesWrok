@@ -1,0 +1,19 @@
+activationData: ZXUxLmFueXBvaW50Lm11bGVzb2Z0LmNvbTpiMTE1NTEyZC0xMWYwLTQ4MzAtOTk4YS03ZmNlNjhjYzJiNzI=
+proxy:
+  http_proxy:
+  http_no_proxy:
+  monitoring_proxy:
+muleLicense:
+customLog4jEnabled: false
+global:
+  crds:
+    install: true
+  authorizedNamespaces: false
+  image:
+    rtfRegistry: rtf-runtime-registry.kprod-eu.msap.io
+    pullSecretName: rtf-pull-secret
+    repositoryNamespace: sfci/mulesoft/ms-docker-image/ms-
+  containerLogPaths:
+  - /var/lib/docker/containers
+  - /var/log/containers
+  - /var/log/pods

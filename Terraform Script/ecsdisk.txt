@@ -1,0 +1,10 @@
+{
+	"Disks": {
+		"Disk": []
+	},
+	"NextToken": "",
+	"PageNumber": 1,
+	"PageSize": 10,
+	"RequestId": "EF2A8AAC-0171-386C-8CCF-AA55F696F246",
+	"TotalCount": 0
+}

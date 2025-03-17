@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rtf-dev-ack-c1-ext-ingress
+  namespace: rtf
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/group.name: rtf-dev-c1-ext-aliyun-group
+    #kubernetes.io/ingress.class: rtf-alb
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-path: /app-name/api/v1/ping
+    #alb.ingress.kubernetes.io/certificate-arn: "arn:ack:acm:us-east-1:99619075467:certificate/********bf83e29dd0ef"
+    
+spec:
+  ingressClassName: rtf-alb
+  rules:
+  - host: "rtf-cruisesaudi.com"
+    http:
+      paths:
+      - pathType: ImplementationSpecific
+        path: /app-name/*
+        backend:
+            service:
+                name: app
+                port:
+                  number: 80
+              
+              
+

@@ -1,0 +1,19 @@
+activationData: ZXUxLmFueXBvaW50Lm11bGVzb2Z0LmNvbTo4ODVlMTQyZi01OTFhLTQ5NTMtOTVmMS05NDZjOTk0YzA3OTM=
+proxy:
+  http_proxy:
+  http_no_proxy:
+  monitoring_proxy:
+muleLicense: 2+W35iUhD9m6ulwhbDfCiJ3Nvi/tY4oeGojBmhT48+Va2bSwGQltSwePSxJaERoMxWYdg3DeCZyYnTStS1lFnjbIlYubEvTqXLCB/AcdwVTzzwZ4E9Ju4iU6uHAEUYQf2XOMFBpos9gpzb9TBd91lmDbQpiNXs4v2d2gf7hLIeV8Zl4QQUUvTlWfIvw1CsIIduaikGaxw89L/OKSoFTvGDX8bxxrX6BhF63GypNsdxyehiEd6KCkO4Cj3gtBcmPnwZoy6uy+ZsRq90UPaPz7gRxDJnwxo4K1ZrysRrileR7c9XxgJSP++6OkNxKF4jTeaMQgGE5H1Okz62HnlI1gFfjN/h1G6lEYzei7QLzAFp+I2qW4LhedZlwFyi37FOZ2PTXvQPFWMlBLDxZ5IBkX3bhod2jwADX58HwIsGyllf4gJwSi+XsHoczgr7PmDT1w5qs3JMOIJPBQF5SiyIOfUAscZ/UwqfqyTr8UXQPmbCdRdxNCho8sR0dayXACg0qW4FAECcQKqi0JwgDVcWWfGUoYYBvKJi7zAf5MeWvoSerg5USSomP/1kCdjcYnUx4lgx9kJDh1CNAURFyMPz8IIRJ4netcem5lmBuL5mSXGSjGrBLxyR8KxiugydK4ya7+/pL/3a4xU7N8jZuElExH9iyE0TUa3LROUriF15/JseomaYU/lFHkr0pKV+07mDppluuc2DAZY/WRZagPBNVoKs1L8O4j7S8BbFTkk7jIfgNdHOMWOmkI4hj8cJrKcH0ke4DmOeBHnnB9MNsHGLjy27seCfNahC6I66xML2bgwRadWDIJVJ6Sy+y0s/Z4df9HHybfrV99JMID27AjRm0Q7Pd/NHRjixJmv2VGaGWp3Ze2JLM5x5Eysw==
+customLog4jEnabled: false
+global:
+  crds:
+    install: true
+  authorizedNamespaces: false
+  image:
+    rtfRegistry: rtf-runtime-registry.kprod-eu.msap.io
+    pullSecretName: rtf-pull-secret
+    repositoryNamespace: sfci/mulesoft/ms-docker-image/ms-
+  containerLogPaths:
+  - /var/lib/docker/containers
+  - /var/log/containers
+  - /var/log/pods

@@ -1,0 +1,130 @@
+
+
+ALibab ACK cluster:
+
+DEV:
+
+terraform init -backend-config="region=me-central-1" -backend-config="bucket=terraform-state-cs-np" -backend-config="key=rtf-dev.tfstate" -backend-config="prefix=terraform/state" -backend-config="profile=default" -backend=true -var-file=envs/dev.tfvars
+terraform plan -var-file=envs/dev.tfvars
+terraform apply -var-file=envs/dev.tfvars -auto-approve
+
+
+terraform init -backend-config="profile=default" -backend=true (Worked)
+
+terraform init -backend-config="region=me-central-1" -backend-config="bucket=terraform-state-cs-np" -backend-config="key=rtf-test.tfstate" -backend-config="prefix=terraform/state" -backend-config="profile=default" -backend=true -var-file=envs/test.tfvars
+terraform plan -var-file=envs/test.tfvars
+terraform apply -var-file=envs/test.tfvars -auto-approve
+
+b.	SET KUBECONFIG=C:\Users\RaviKumarVanaparthi\.kube\config-test
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEV-INT
+
+terraform init -backend-config="region=us-east-1" -backend-config="bucket=terraform-state-fhmc-np" -backend-config="key=dev/apps/mulesoft/rtf-dev-internal.tfstate" -backend-config="profile=default" -backend=true -var-file=envs/dev-int.tfvars
+terraform plan -var-file=envs/dev-int.tfvars
+terraform apply -var-file=envs/dev-int.tfvars -auto-approve
+aws eks update-kubeconfig --name rtf-eks-cluster-dev-int --region us-east-1
+
+terraform init -backend-config="region=us-east-1" -backend-config="bucket=terraform-state-fhmc-np" -backend-config="key=dev/apps/mulesoft/terraform-alb.tfstate" -backend-config="profile=default" -backend=true -var-file=envs/dev-int.tfvars
+rtf-ext-dev.tfstate
+terraform-alb.tfstate
+
+DEV-EXT
+terraform init -backend-config="region=us-east-1" -backend-config="bucket=terraform-state-fhmc-np" -backend-config="key=dev/apps/mulesoft/rtf-dev-external.tfstate" -backend-config="profile=default" -backend=true -var-file=envs/dev-ext.tfvars
+terraform plan -var-file=envs/dev-ext.tfvars
+terraform apply -var-file=envs/dev-ext.tfvars -auto-approve
+aws eks update-kubeconfig --name rtf-eks-cluster-dev-ext --region us-east-1
+
+TEST-INT
+
+terraform init -backend-config="region=us-east-1" -backend-config="bucket=terraform-state-fhmc-np" -backend-config="key=test/apps/mulesoft/rtf-test-int.tfstate" -backend-config="profile=default" -backend=true -var-file=envs/test-int.tfvars
+terraform plan -var-file=envs/test-int.tfvars
+terraform apply -var-file=envs/test-int.tfvars -auto-approve
+aws eks update-kubeconfig --name rtf-eks-cluster-test-int --region us-east-1
+
+TEST
+
+terraform init -backend-config="region=us-east-1" -backend-config="bucket=terraform-state-rc-np" -backend-config="key=test/test.tfstate" -backend-config="profile=Ravikumar" -backend=true -var-file=envs/test.tfvars
+terraform plan -var-file=envs/test.tfvars
+terraform apply -var-file=envs/test.tfvars -auto-approve
+aws eks update-kubeconfig --name rtf-eks-cluster-test --region us-east-1
+
+
+TEST - IAM 
+
+terraform init -backend-config="region=us-east-1" -backend-config="bucket=terraform-state-fhmc-np" -backend-config="key=test/apps/mulesoft/iam/karl-test.tfstate" -backend-config="profile=default" -backend=true -var-file=envs/test.tfvars
+terraform plan -var-file=envs/test.tfvars
+terraform apply -var-file=envs/test.tfvars -auto-approve
+aws eks update-kubeconfig --name rtf-eks-cluster-test --region us-east-1
+
+TEST-EXT
+
+terraform init -backend-config="region=us-east-1" -backend-config="bucket=terraform-state-fhmc-np" -backend-config="key=test/apps/mulesoft/rtf-ext-test.tfstate" -backend-config="profile=default" -backend=true -var-file=envs/test-ext.tfvars
+terraform plan -var-file=envs/test-ext.tfvars
+terraform apply -var-file=envs/test-int.tfvars -auto-approve
+aws eks update-kubeconfig --name rtf-eks-cluster-test-ext --region us-east-1
+
+
+UAT-INT
+
+terraform init -backend-config="region=us-east-1" -backend-config="bucket=terraform-state-fhmc-np" -backend-config="key=uat/apps/mulesoft/rtf-uat-int.tfstate" -backend-config="profile=default" -backend=true -var-file=envs/uat-int.tfvars
+terraform plan -var-file=envs/uat-int.tfvars
+terraform apply -var-file=envs/uat-int.tfvars -auto-approve
+aws eks update-kubeconfig --name rtf-eks-cluster-uat-int --region us-east-1
+
+UAT-EXT
+terraform init -backend-config="region=us-east-1" -backend-config="bucket=terraform-state-fhmc-np" -backend-config="key=uat/apps/mulesoft/rtf-ext-uat.tfstate" -backend-config="profile=default" -backend=true -var-file=envs/uat-ext.tfvars
+terraform plan -var-file=envs/uat-ext.tfvars
+terraform apply -var-file=envs/uat-ext.tfvars -auto-approve
+aws eks update-kubeconfig --name rtf-eks-cluster-uat-ext --region us-east-1
+
+
+curl https://api-rtf-dev-int.freedommortgage.com/rtf-eks-dev-int/api/v1/ping - for dev-int
+curl https://api-rtf-dev-ext.freedommortgage.com/rtf-eks-dev-ext/api/v1/ping - for dev-ext
+
+
+╷
+│ Error: failed updating tags for IAM OIDC Provider (arn:aws:iam::996190702173:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/69EB3517208363FCB60E1B2AD68F0886): error untagging resource (arn:aws:iam::996190702173:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/69EB3517208363FCB60E1B2AD68F0886): AccessDenied: User: arn:aws:sts::996190702173:assumed-role/AWSReservedSSO_MuleSoftAdministrator_f1d3a5a7a1a2b34b/rvanapar@freedommortgage.com is not authorized to perform: iam:UntagOpenIDConnectProvider on resource: arn:aws:iam::996190702173:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/69EB3517208363FCB60E1B2AD68F0886 because no identity-based policy allows the iam:UntagOpenIDConnectProvider action
+│       status code: 403, request id: 8a2f8819-ca33-4283-a441-455f27b28b07
+│
+│   with aws_iam_openid_connect_provider.cluster,
+│   on oidc-provider.tf line 6, in resource "aws_iam_openid_connect_provider" "cluster":
+│    6: resource "aws_iam_openid_connect_provider" "cluster" {
+│
+
+
+
+
+DR:
+
+DEV-INT
+
+terraform init -backend-config="region=us-east-2" -backend-config="bucket=terraform-state-fhmc-np2" -backend-config="key=dev/apps/mulesoft/rtf-dev-internal-dr.tfstate" -backend-config="profile=default" -backend=true -var-file=envs/dev-intdr.tfvars
+terraform plan -var-file=envs/dev-intdr.tfvars
+terraform apply -var-file=envs/dev-intdr.tfvars -auto-approve
+
+aws eks update-kubeconfig --name rtf-eks-cluster-dev-int --region us-east-2
+
+SET AWS_ACCESS_KEY_ID=ASIA6P4MXZJO2KQ2RZYG
+SET AWS_SECRET_ACCESS_KEY=OqPxE0C9MKp7P4CJz0sU1mJDMkG8OQp6dvgboung
+SET AWS_SESSION_TOKEN=IQoJb3JpZ2luX2VjECIaCXVzLWVhc3QtMSJHMEUCIAwyEByatE2aU2aFOB9bYPJd+CEAUxm6/AdnHmOagELrAiEAzRVv+1nP5usmeETXUl79ey62L10HsdRpxJ2TYwFZt8EqogMISxADGgw5OTYxOTA3MDIxNzMiDLXge3eZgztZaLnmHCr/Avez8BsZy1BJvq+OaURBWpME0nG2BWxR7d9y2hW+he+KSiGOjA1/mTVnGdcx/oQEx8aHCbEAjjpgiVbBTgxMMKoV8PeGPfYD1mz2dGLdhfRqvqoVRW9aBlf1nSJ08xkKlhZnAA2EQohYPxGqHxedM7gInxFinF82LTYLQipq5Dkbt16xFJ/ykPLfqDGcJmeB4Ff3Cj+JvewPmE5Agl1VNvZEnqieHOzaOrnW5b3yum723hmUpOzs7wPkkdH7OGVSKG+9gqoDPfVLc5/NhDO2XJyAYIBBQqHS7ov1QBLdYC6lxcYEcdmphYn26qWimGF5d5t1B3Kqvom9szUrHmeTkSaRbJS7rM/H+vt0zwrTIxhsO7HMlwGaB/soQFEs3q/UFUF7KOjszMiMpNtm9emdDS+EfxOYlpkJakU49qZKndbvV/Ok55c/A1GBUFwU4bqXViAclj1OfW8/o7NnGO8Ih7uu/NMsedOm36ZozYJDH/nStZjEb9KipvlvVhlpcUBsMPydlKMGOqYBHI+lUDSQ47Nq96SP/ghUaBperfSXrMTBUoAMNEj+2OUHa9xfuKiqNgDX2Y1ZsyF7Xn6rY06WD+u039dqjTg/7R03OozistrTEKixHpIcgzu+y3ItoOVOiZgb54W6uAtvGbqiQHTo/NAFOFY1DQlM12+rWY1DALQAoYEbu6BR5BAd+u0/nxGF9SkmI/NP+cLLmQ7RkOURgOiJf7cAuq9Fa1wDVDhZ1A==
+
+
+
+POC EKS:
+
+terraform init -backend-config="region=us-east-1" -backend-config="bucket=terraform-state-fhmc-np" -backend-config="key=dev/apps/mulesoft/rtf-poc-iam.tfstate" -backend-config="profile=default" -backend=true -var-file=envs/dev.tfvars
+terraform plan -var-file=envs/dev.tfvars
+terraform apply -var-file=envs/dev.tfvars -auto-approve

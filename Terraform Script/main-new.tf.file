@@ -1,0 +1,236 @@
+provider "alicloud" {
+  region = var.region_id
+  access_key = "LTAI5tD2RKrTdpPvRUH7Wtev"
+  secret_key = "8HKIS6rkv0dExi0wEVoMMyHuPQNMje"
+}
+
+variable "region_id" {
+  type    = string
+  default = "me-central-1"
+}
+
+variable "cluster_spec" {
+  type        = string
+  description = "The cluster specifications of kubernetes cluster,which can be empty. Valid values:ack.standard : Standard managed clusters; ack.pro.small : Professional managed clusters."
+  default     = "ack.pro.small"
+}
+
+# Specify the zones of vSwitches. 
+variable "availability_zone" {
+  description = "The availability zones of vswitches."
+  default     = ["me-central-1a", "me-central-1b"]
+}
+
+# Specify vSwitch IDs. 
+variable "node_vswitch_ids" {
+  description = "List of existing node vswitch ids for terway."
+  type        = list(string)
+  default     = []
+}
+
+# This variable specifies the CIDR blocks for creating vSwitches. 
+variable "node_vswitch_cidrs" {
+  description = "List of cidr blocks used to create several new vswitches when 'node_vswitch_ids' is not specified."
+  type        = list(string)
+  default     = ["192.168.0.0/23", "192.168.2.0/23", "192.168.4.0/23"]
+}
+
+# Specify the Terway configurations. If you leave this variable empty, new Terway vSwitches are created based on the value of the terway_vswitch_cidrs variable. 
+variable "terway_vswitch_ids" {
+  description = "List of existing pod vswitch ids for terway."
+  type        = list(string)
+  default     = []
+}
+
+# This variable specifies the CIDR blocks in which Terway vSwitches are created when terway_vswitch_ids is not specified. 
+variable "terway_vswitch_cidrs" {
+  description = "List of cidr blocks used to create several new vswitches when 'terway_vswitch_ids' is not specified."
+  type        = list(string)
+  default     = ["192.168.208.0/20", "192.168.224.0/20", "192.168.240.0/20"]
+}
+
+# Specify the ECS instance types of worker nodes. 
+variable "worker_instance_types" {
+  description = "The ecs instance types used to launch worker nodes."
+  default     = ["ecs.g6.2xlarge", "ecs.g6.xlarge"]
+}
+
+# Specify a password for the worker node.
+variable "password" {
+  description = "The password of ECS instance."
+  default     = "Test123456"
+}
+
+# Specify the add-ons that you want to install in the ACK managed cluster. The add-ons include Terway (network add-on), csi-plugin (volume add-on), csi-provisioner (volume add-on), logtail-ds (logging add-on), Nginx Ingress controller, ack-arms-prometheus (monitoring add-on), and ack-node-problem-detector (node diagnostics add-on). 
+variable "cluster_addons" {
+  type = list(object({
+    name   = string
+    config = string
+  }))
+  default = [
+    {
+      "name"   = "terway-eniip",
+      "config" = "",
+    },
+    {
+      "name"   = "logtail-ds",
+      "config" = "{\"IngressDashboardEnabled\":\"true\"}",
+    },
+    {
+      "name"   = "nginx-ingress-controller",
+      "config" = "{\"IngressSlbNetworkType\":\"internet\"}",
+    },
+    {
+      "name"   = "arms-prometheus",
+      "config" = "",
+    },
+    {
+      "name"   = "ack-node-problem-detector",
+      "config" = "{\"sls_project_name\":\"\"}",
+    },
+    {
+      "name"   = "csi-plugin",
+      "config" = "",
+    },
+    {
+      "name"   = "csi-provisioner",
+      "config" = "",
+    }
+  ]
+}
+
+# Specify the prefix of the name of the ACK managed cluster. 
+variable "k8s_name_prefix" {
+  description = "The name prefix used to create managed kubernetes cluster."
+  default     = "RTF-ACK"
+}
+
+# The default resource names. 
+locals {
+  k8s_name_terway         = substr(join("-", [var.k8s_name_prefix, "terway"]), 0, 63)
+  k8s_name_flannel        = substr(join("-", [var.k8s_name_prefix, "flannel"]), 0, 63)
+  k8s_name_ask            = substr(join("-", [var.k8s_name_prefix, "ask"]), 0, 63)
+  new_vpc_name            = "rtf-ack-vpc"
+  new_vsw_name_azD        = "rtf-vswitch-azA-172-16-0"
+  new_vsw_name_azE        = "rtf-vswitch-azB-172-16-2"
+  new_vsw_name_azF        = "rtf-vswitch-azC-172-16-4"
+  nodepool_name           = "RTF-nodepool"
+  managed_nodepool_name   = "managed-RTF-node-pool"
+  autoscale_nodepool_name = "autoscale-RTF-node-pool"
+  log_project_name        = "log-for-${local.k8s_name_terway}"
+}
+
+# The ECS instance specifications of worker nodes. Terraform searches for ECS instance types that fulfill the CPU and memory requests. 
+#data "alicloud_instance_types" "default" {
+ # cpu_core_count       = 4
+  #memory_size          = 8
+ # availability_zone    = var.availability_zone[0]
+ # kubernetes_node_role = "Worker"
+#}
+
+# The VPC. 
+resource "alicloud_vpc" "default" {
+  vpc_name   = local.new_vpc_name
+  cidr_block = "192.168.0.0/16"
+}
+
+# The node vSwitches. 
+resource "alicloud_vswitch" "vswitches" {
+  count      = length(var.node_vswitch_ids) > 0 ?  0 : length(var.node_vswitch_cidrs)
+  vpc_id     = alicloud_vpc.default.id
+  cidr_block = element(var.node_vswitch_cidrs, count.index)
+  zone_id    = element(var.availability_zone, count.index)
+}
+
+# The pod vSwitches. 
+resource "alicloud_vswitch" "terway_vswitches" {
+  count      = length(var.terway_vswitch_ids) > 0 ?  0 : length(var.terway_vswitch_cidrs)
+  vpc_id     = alicloud_vpc.default.id
+  cidr_block = element(var.terway_vswitch_cidrs, count.index)
+  zone_id    = element(var.availability_zone, count.index)
+}
+
+# The ACK managed cluster. 
+resource "alicloud_cs_managed_kubernetes" "default" {
+  name                         = local.k8s_name_terway                                         # The ACK cluster name. 
+  cluster_spec                 = var.cluster_spec                                              # Create an ACK Pro cluster. 
+  worker_vswitch_ids           = split(",", join(",", alicloud_vswitch.vswitches.*.id))        # The vSwitch to which the node pool belongs. Specify one or more vSwitch IDs. The vSwitches must reside in the zone specified by availability_zone. 
+  pod_vswitch_ids              = split(",", join(",", alicloud_vswitch.terway_vswitches.*.id)) # The vSwitch of the pod. 
+  new_nat_gateway              = true                                                          # Specify whether to create a NAT gateway when the Kubernetes cluster is created. Default value: true. 
+  service_cidr                 = "10.11.0.0/16"                                                # The pod CIDR block. If you set the cluster_network_type parameter to flannel, this parameter is required. The pod CIDR block cannot be the same as the VPC CIDR block or the CIDR blocks of other Kubernetes clusters in the VPC. You cannot change the pod CIDR block after the cluster is created. Maximum number of hosts in the cluster: 256. 
+  slb_internet_enabled         = false                                                          # Specify whether to create an Internet-facing SLB instance for the API server of the cluster. Default value: false. Valid values: 
+  enable_rrsa                  = true
+  version                      = var.kubernetes_version
+  control_plane_log_components = ["apiserver", "kcm", "scheduler", "ccm"] # The control plane logs. 
+  dynamic "addons" {                                                      # Component management. 
+    for_each = var.cluster_addons
+    content {
+      name   = lookup(addons.value, "name", var.cluster_addons)
+      config = lookup(addons.value, "config", var.cluster_addons)
+    }
+  }
+}
+
+# The regular node pool. 
+resource "alicloud_cs_kubernetes_node_pool" "default" {
+  cluster_id            = alicloud_cs_managed_kubernetes.default.id              # The ACK cluster name. 
+  node_pool_name        = local.nodepool_name                                    # The node pool name. 
+  vswitch_ids           = split(",", join(",", alicloud_vswitch.vswitches.*.id)) # The vSwitch to which the node pool belongs. Specify one or more vSwitch IDs. The vSwitches must reside in the zone specified by availability_zone. 
+  instance_types        = var.worker_instance_types
+  instance_charge_type  = "PostPaid"
+  desired_size          = 2            # The expected number of nodes in the node pool. 
+  password              = var.password # The password that is used to log on to the cluster by using SSH. 
+  install_cloud_monitor = true         # Specify whether to install the CloudMonitor agent on the nodes in the cluster. 
+  system_disk_category  = "cloud_efficiency"
+  system_disk_size      = 100
+  image_type            = "AliyunLinux"
+  data_disks {              # The data disk configuration of the node. 
+    category = "cloud_essd" # The disk type. 
+    size     = 120          # The disk size. 
+  }
+}
+
+# Create a managed node pool. 
+resource "alicloud_cs_kubernetes_node_pool" "managed_node_pool" {
+  cluster_id     = alicloud_cs_managed_kubernetes.default.id              # The ACK cluster name. 
+  node_pool_name = local.managed_nodepool_name                            # The node pool name. 
+  vswitch_ids    = split(",", join(",", alicloud_vswitch.vswitches.*.id)) # The vSwitch to which the node pool belongs. Specify one or more vSwitch IDs. The vSwitches must reside in the zone specified by availability_zone. 
+  desired_size   = 0                                                      # The expected number of nodes in the node pool. 
+  management {
+    auto_repair     = true
+    auto_upgrade    = true
+    max_unavailable = 1
+  }
+  instance_types        = var.worker_instance_types
+  instance_charge_type  = "PostPaid"
+  password              = var.password
+  install_cloud_monitor = true
+  system_disk_category  = "cloud_efficiency"
+  system_disk_size      = 100
+  image_type            = "AliyunLinux"
+  data_disks {
+    category = "cloud_essd"
+    size     = 120
+  }
+}
+
+# Create a node pool for which auto scaling is enabled. The node pool can be scaled out to a maximum of 10 nodes and must contain at least 1 node. 
+resource "alicloud_cs_kubernetes_node_pool" "autoscale_node_pool" {
+  cluster_id     = alicloud_cs_managed_kubernetes.default.id
+  node_pool_name = local.autoscale_nodepool_name
+  vswitch_ids    = split(",", join(",", alicloud_vswitch.vswitches.*.id))
+  scaling_config {
+    min_size = 1
+    max_size = 3
+  }
+  instance_types        = var.worker_instance_types
+  password              = var.password # The password that is used to log on to the cluster by using SSH. 
+  install_cloud_monitor = true         # Specify whether to install the CloudMonitor agent on the nodes in the cluster. 
+  system_disk_category  = "cloud_efficiency"
+  system_disk_size      = 100
+  image_type            = "AliyunLinux3"
+  data_disks {              # The data disk configuration of the node. 
+    category = "cloud_essd" # The disk type. 
+    size     = 120          # The disk size. 
+  }
+}
